@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "trackerforge-composer"
+version = "0.4.0"
+description = "Prompt-driven melody and bass composer for MilkyTracker XM"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [{name = "Aleksis Leipakivi", email = "tukorama@gmail.com"}]
+keywords = ["tracker", "music", "chiptune", "milkytracker", "xm", "retro"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Other Audience",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Sound/Audio",
+]
+dependencies = [
+    "PySide6>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7",
+    "black>=23",
+    "flake8>=6",
+]
+
+[project.urls]
+Homepage = "https://github.com/AleksisLeipakivi/arc-ai-tracker-composer"
+Repository = "https://github.com/AleksisLeipakivi/arc-ai-tracker-composer.git"
+Issues = "https://github.com/AleksisLeipakivi/arc-ai-tracker-composer/issues"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.black]
+line-length = 100
+target-version = ["py38"]
