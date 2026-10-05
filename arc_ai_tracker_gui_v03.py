@@ -345,6 +345,32 @@ class ArcAiComposer(QWidget):
             f"🎲 Random preset: {choice}"
         )
 
+    def open_with_milkytracker(self, filepath):
+        """Open an XM file explicitly in MilkyTracker, not via Windows file association."""
+        candidates = [
+            r"C:\Program Files\MilkyTracker\MilkyTracker.exe",
+            r"C:\Program Files (x86)\MilkyTracker\MilkyTracker.exe",
+            r"C:\Users\tuukk\AppData\Local\Microsoft\WinGet\Packages\MilkyTracker.MilkyTracker_Microsoft.Winget.Source_8wekyb3d8bbwe\milkytracker-1.05.01-win64\MilkyTracker.exe",
+        ]
+
+        exe = next((path for path in candidates if Path(path).exists()), None)
+
+        if exe:
+            subprocess.Popen([exe, filepath])
+            self.log.append(f"▶ Opened in MilkyTracker: {filepath}")
+            return
+
+        self.log.append(f"⚠️ MilkyTracker not found; opening default app for: {filepath}")
+
+        try:
+            os.startfile(filepath)
+        except Exception as exc:
+            QMessageBox.warning(
+                self,
+                "Open file",
+                f"Could not open file: {filepath}\n\n{exc}"
+            )
+
     def generate_track(self):
 
         style = self.style.currentText()
@@ -389,7 +415,7 @@ class ArcAiComposer(QWidget):
                     f"✅ Generated: {output}"
                 )
 
-                os.startfile(output)
+                self.open_with_milkytracker(output)
 
             else:
 
@@ -411,7 +437,7 @@ class ArcAiComposer(QWidget):
             self.latest_file
             and Path(self.latest_file).exists()
         ):
-            os.startfile(self.latest_file)
+            self.open_with_milkytracker(self.latest_file)
 
     def closeEvent(self, event):
 
@@ -426,3 +452,4 @@ if __name__ == "__main__":
     window.show()
 
     sys.exit(app.exec())
+
