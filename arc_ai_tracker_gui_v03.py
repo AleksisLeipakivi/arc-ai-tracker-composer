@@ -104,16 +104,45 @@ PRESETS = {
 }
 
 
+def find_milkytracker():
+    """
+    Automaattisesti etsi MilkyTracker.exe:n tunnetuista sijainneista.
+    Etsii järjestyksessä:
+    1. Program Files
+    2. Program Files (x86)
+    3. Downloads-kansio
+    4. Desktop
+    5. WinGet asennus (Microsoft Store)
+    """
+    possible_paths = [
+        r"C:\Program Files\MilkyTracker\MilkyTracker.exe",
+        r"C:\Program Files (x86)\MilkyTracker\MilkyTracker.exe",
+        str(Path.home() / "Downloads" / "MilkyTracker.exe"),
+        str(Path.home() / "Desktop" / "MilkyTracker.exe"),
+        r"C:\Users\tuukk\AppData\Local\Microsoft\WinGet\Packages\MilkyTracker.MilkyTracker_Microsoft.Winget.Source_8wekyb3d8bbwe\milkytracker-1.05.01-win64\MilkyTracker.exe",
+    ]
+
+    for path in possible_paths:
+        if Path(path).exists():
+            return path
+
+    return None
+
+
 class ArcAiComposer(QWidget):
 
     def __init__(self):
         super().__init__()
 
         self.latest_file = None
+        self.milkytracker_path = find_milkytracker()
 
-        self.setWindowTitle("SemiTracker_Composer_v0.3")
+        self.setWindowTitle("TrackerForge Composer v0.4")
         self.resize(750, 550)
         print("Window size set")
+
+        if not self.milkytracker_path:
+            print("⚠️  MilkyTracker not found. Some features may be limited.")
 
         self.setStyleSheet("""
         QWidget {
@@ -174,7 +203,7 @@ class ArcAiComposer(QWidget):
         """)
         layout.addWidget(title)
         subtitle = QLabel(
-            "Featuring KiljuPaska-82 Preset Pack"
+            "Featuring KiljuPaska-82 Preset Pack | v0.4 Patch"
         )
 
         subtitle.setStyleSheet("""
@@ -346,28 +375,36 @@ class ArcAiComposer(QWidget):
         )
 
     def open_with_milkytracker(self, filepath):
-        """Open an XM file explicitly in MilkyTracker, not via Windows file association."""
-        candidates = [
-            r"C:\Program Files\MilkyTracker\MilkyTracker.exe",
-            r"C:\Program Files (x86)\MilkyTracker\MilkyTracker.exe",
-            r"C:\Users\tuukk\AppData\Local\Microsoft\WinGet\Packages\MilkyTracker.MilkyTracker_Microsoft.Winget.Source_8wekyb3d8bbwe\milkytracker-1.05.01-win64\MilkyTracker.exe",
-        ]
-
-        exe = next((path for path in candidates if Path(path).exists()), None)
-
-        if exe:
-            subprocess.Popen([exe, filepath])
-            self.log.append(f"▶ Opened in MilkyTracker: {filepath}")
+        """
+        Avaa XM-tiedoston MilkyTrackerissa.
+        Ensin yritetään käyttää automaattisesti löydettyä polkua,
+        jos se ei onnistu, palataan oletusavaimeen.
+        """
+        if not Path(filepath).exists():
+            self.log.append(f"❌ File not found: {filepath}")
+            QMessageBox.warning(
+                self,
+                "File Error",
+                f"File not found: {filepath}"
+            )
             return
 
-        self.log.append(f"⚠️ MilkyTracker not found; opening default app for: {filepath}")
+        if self.milkytracker_path:
+            try:
+                subprocess.Popen([self.milkytracker_path, filepath])
+                self.log.append(f"▶ Opened in MilkyTracker: {filepath}")
+                return
+            except Exception as e:
+                self.log.append(f"⚠️  Failed to open with MilkyTracker: {e}")
 
+        # Fallback: käytä oletusaverta
+        self.log.append(f"🔧 Opening with default application: {filepath}")
         try:
             os.startfile(filepath)
         except Exception as exc:
             QMessageBox.warning(
                 self,
-                "Open file",
+                "Open file error",
                 f"Could not open file: {filepath}\n\n{exc}"
             )
 
@@ -438,6 +475,12 @@ class ArcAiComposer(QWidget):
             and Path(self.latest_file).exists()
         ):
             self.open_with_milkytracker(self.latest_file)
+        else:
+            QMessageBox.information(
+                self,
+                "No file",
+                "No recently generated XM file found."
+            )
 
     def closeEvent(self, event):
 
@@ -452,4 +495,3 @@ if __name__ == "__main__":
     window.show()
 
     sys.exit(app.exec())
-
